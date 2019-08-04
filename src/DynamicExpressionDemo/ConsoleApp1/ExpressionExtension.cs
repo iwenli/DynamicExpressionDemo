@@ -174,19 +174,50 @@ namespace ConsoleApp1
         /// <returns></returns>
         public static Expression<Func<T, object>> GenerateOrderExpression<T>(string propertyName)
         {
-            var property = typeof(T).GetProperty(propertyName,
-                BindingFlags.Public
-                | BindingFlags.Instance
-                | BindingFlags.IgnoreCase);
+            //var property = typeof(T).GetProperty(propertyName,
+            //    BindingFlags.Public
+            //    | BindingFlags.Instance
+            //    | BindingFlags.IgnoreCase);
 
-            if (property == null)
-            {
-                throw new Exception($"类型中不存在名称为{propertyName}的属性");
-            }
+            //if (property == null)
+            //{
+            //    throw new Exception($"类型中不存在名称为{propertyName}的属性");
+            //}
             var parameter = Expression.Parameter(typeof(T), "m");
             var propertyExpression = Expression.Property(parameter, propertyName);
             var converted = Expression.Convert(propertyExpression, typeof(object));
             return Expression.Lambda<Func<T, object>>(converted, parameter);
+        }
+
+        /// <summary>
+        /// 生成映射Expression
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="propertyName"></param>
+        /// <returns></returns>
+        public static Expression<Func<T, TResult>> GenerateSelectExpression<T, TResult>(IEnumerable<string> properties)
+        {
+            var source = Expression.Parameter(typeof(T), "source");
+            var result = Expression.Variable(typeof(TResult), "result");
+            var propertyList = typeof(T).GetProperties(BindingFlags.Public | BindingFlags.Instance);
+            var binaryExpressions = new List<BinaryExpression>();
+            foreach (var property in propertyList)
+            {
+                if (properties.Any(m => property.Name.Equals(m, StringComparison.CurrentCultureIgnoreCase)))
+                {
+                    var resultProp = typeof(TResult).GetProperty(property.Name, BindingFlags.IgnoreCase | BindingFlags.Public | BindingFlags.Instance);
+                    if (resultProp != null && resultProp.CanWrite)
+                    {
+                        binaryExpressions.Add(Expression.Assign(Expression.Property(result, resultProp), Expression.Property(source, property)));
+                    }
+                }
+            }
+            var body = new List<Expression>();
+            body.Add(Expression.Assign(result, Expression.New(typeof(TResult))));
+            body.AddRange(binaryExpressions);
+            body.Add(result);
+            var expr = Expression.Lambda<Func<T, TResult>>(Expression.Block(new[] { result }, body.ToArray()), source);
+            return expr;
         }
     }
 
