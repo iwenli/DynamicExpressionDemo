@@ -5,24 +5,12 @@ using System.Linq.Expressions;
 
 namespace ConsoleApp1
 {
-    //参考
-    //https://blog.csdn.net/sdnjiejie65/article/details/18798541
-    //https://blog.csdn.net/Shiyaru1314/article/details/49508181
-
+    // 参考文档
+    // https://docs.microsoft.com/zh-cn/dotnet/api/system.linq.expressions.expression?view=netcore-2.2
     class Program
     {
         static void Main(string[] args)
         {
-            ////(a,b)=>(a+b)
-            ////参数的构建  (定义参数的名字和参数的类型)
-            //ParameterExpression exp1 = Expression.Parameter(typeof(int), "a");
-            //ParameterExpression exp2 = Expression.Parameter(typeof(int), "b");
-            ////表达式主体的构建 
-            //BinaryExpression exp = Expression.Add(exp1, exp2);
-            ////表达式树的构建（如下定义，表达式的类型为Lambda 
-            ////lambda表达式的类型为Func<int, int, int>）
-            //var lambda = Expression.Lambda<Func<int, int, int>>(exp, exp1, exp2);
-
             var orderByExperssion = ExpressionExtension.GenerateOrderExpression<Person>("age");
             var orderByList = Person.Data.OrderBy(orderByExperssion.Compile()).ToList();
             Print(orderByList, "age 升序");
