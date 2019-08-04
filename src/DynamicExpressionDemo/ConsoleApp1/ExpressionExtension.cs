@@ -8,48 +8,51 @@ using System.Text;
 
 namespace ConsoleApp1
 {
+    /// <summary>
+    /// 
+    /// </summary>
     public class ExpressionExtension
     {
-        private static MethodInfo containsMethod = typeof(string).GetMethod("Contains");
+        private static MethodInfo containsMethod = typeof(string).GetMethod("Contains", new Type[] { typeof(string) });
         private static MethodInfo startsWithMethod = typeof(string).GetMethod("StartsWith", new Type[] { typeof(string) });
         private static MethodInfo endsWithMethod = typeof(string).GetMethod("EndsWith", new Type[] { typeof(string) });
         private static Expression GetExpression(ParameterExpression param, Filter filter)
         {
             MemberExpression member = Expression.Property(param, filter.PropertyName);
-            Expression handledMember = member;
+            // Expression handledMember = member;
             ConstantExpression constant = Expression.Constant(filter.Value);
 
-            if (member.Member.MemberType == MemberTypes.Property)
-            {
-                Type propertyType = ((PropertyInfo)member.Member).PropertyType;
-                if (propertyType == typeof(string))
-                {
-                    handledMember = Expression.Call(member, typeof(string).GetMethod("ToLower", System.Type.EmptyTypes));
-                }
-                if (propertyType == typeof(DateTime?))
-                {
-                    handledMember = Expression.Property(member, typeof(DateTime?).GetProperty("Value"));
-                }
-            }
+            // if (member.Member.MemberType == MemberTypes.Property)
+            // {
+            //     Type propertyType = ((PropertyInfo)member.Member).PropertyType;
+            //     if (propertyType == typeof(string))
+            //     {
+            //         handledMember = Expression.Call(member, typeof(string).GetMethod("ToLower", System.Type.EmptyTypes));
+            //     }
+            //     if (propertyType == typeof(DateTime?))
+            //     {
+            //         handledMember = Expression.Property(member, typeof(DateTime?).GetProperty("Value"));
+            //     }
+            // }
 
             switch (filter.Operation)
             {
                 case Op.Equals:
-                    return Expression.Equal(handledMember, constant);
+                    return Expression.Equal(member, constant);
                 case Op.GreaterThan:
-                    return Expression.GreaterThan(handledMember, constant);
+                    return Expression.GreaterThan(member, constant);
                 case Op.GreaterThanOrEqual:
-                    return Expression.GreaterThanOrEqual(handledMember, constant);
+                    return Expression.GreaterThanOrEqual(member, constant);
                 case Op.LessThan:
-                    return Expression.LessThan(handledMember, constant);
+                    return Expression.LessThan(member, constant);
                 case Op.LessThanOrEqual:
-                    return Expression.LessThanOrEqual(handledMember, constant);
+                    return Expression.LessThanOrEqual(member, constant);
                 case Op.Contains:
-                    return Expression.Call(handledMember, containsMethod, constant);
+                    return Expression.Call(member, containsMethod, constant);
                 case Op.StartsWith:
-                    return Expression.Call(handledMember, startsWithMethod, constant);
+                    return Expression.Call(member, startsWithMethod, constant);
                 case Op.EndsWith:
-                    return Expression.Call(handledMember, endsWithMethod, constant);
+                    return Expression.Call(member, endsWithMethod, constant);
             }
 
             return null;
@@ -106,7 +109,14 @@ namespace ConsoleApp1
             return exp;
         }
 
-        public static Expression<Func<T, bool>> GetExpression<T>(FilterCollection filters)
+        /// <summary>
+        /// 条件表达式树生成
+        /// list<filter>内or  多个list<filter>and
+        /// </summary>
+        /// <param name="filters"></param>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
+        public static Expression<Func<T, bool>> GenerateQueryExpression<T>(FilterCollection filters)
         {
             if (filters == null || filters.Count == 0)
                 return null;
@@ -157,12 +167,12 @@ namespace ConsoleApp1
         }
 
         /// <summary>
-        /// 排序
+        /// 生成排序Expression
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="propertyName"></param>
         /// <returns></returns>
-        public static Expression<Func<T, object>> CreateOrderByExpression<T>(string propertyName)
+        public static Expression<Func<T, object>> GenerateOrderExpression<T>(string propertyName)
         {
             var property = typeof(T).GetProperty(propertyName,
                 BindingFlags.Public

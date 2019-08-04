@@ -28,16 +28,30 @@ namespace ConsoleApp1
             var orderByList = Person.Data.OrderBy(orderByExperssion.Compile()).ToList();
             Print(orderByList, "age 升序");
 
-            var orderByExperssion1 = ExpressionExtension.CreateOrderByExpression<Person>("id");
+            var orderByExperssion1 = ExpressionExtension.GenerateOrderExpression<Person>("id");
             var OrderByList1 = orderByList.OrderByDescending(orderByExperssion1.Compile()).ToList();
             Print(OrderByList1, "id 降序");
 
-
             FilterCollection filters = new FilterCollection();
-            filters.Add(new List<Filter> { new Filter("age", "12"), new Filter("id", "4") });
-            var whereExperssion = ExpressionExtension.GetExpression<Person>(filters);
+            filters.Add(new List<Filter> { new Filter("age", 10) ,new Filter("id", 4)});
+            var whereExperssion = ExpressionExtension.GenerateQueryExpression<Person>(filters);
             var data = Person.Data.Where(whereExperssion.Compile());
-            Print(OrderByList1, "age==12 && id==4");
+            Print(data, "age==10 || id==4");
+
+            FilterCollection filters1 = new FilterCollection();
+            filters1.Add(new List<Filter> { new Filter("age", 10) });
+            filters1.Add(new List<Filter> { new Filter("id", 4) });
+            var whereExperssion1 = ExpressionExtension.GenerateQueryExpression<Person>(filters1);
+            var data1 = Person.Data.Where(whereExperssion1.Compile());
+            Print(data1, "age==10 && id==4");
+
+            
+
+            FilterCollection filters2 = new FilterCollection();
+            filters2.Add(new List<Filter> { new Filter("name","赵",Op.Contains) });
+            var whereExperssion2 = ExpressionExtension.GenerateQueryExpression<Person>(filters2);
+            var data2 = Person.Data.Where(whereExperssion2.Compile());
+            Print(data2, "名字包含赵");
 
             //Person.Data.Where()
             ////p=>p.Name == "daisy" 
