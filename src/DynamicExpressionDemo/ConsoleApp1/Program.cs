@@ -23,8 +23,7 @@ namespace ConsoleApp1
             ////lambda表达式的类型为Func<int, int, int>）
             //var lambda = Expression.Lambda<Func<int, int, int>>(exp, exp1, exp2);
 
-            //p=>p.Name 可以动态构建OrderBy
-            var orderByExperssion = ExpressionExtension.CreateOrderByExpression<Person>("age");
+            var orderByExperssion = ExpressionExtension.GenerateOrderExpression<Person>("age");
             var orderByList = Person.Data.OrderBy(orderByExperssion.Compile()).ToList();
             Print(orderByList, "age 升序");
 
@@ -63,19 +62,6 @@ namespace ConsoleApp1
             //}
             //Console.ReadKey();
         }
-        public static Func<TSource, bool> simpleCompare<TSource>(string property, object value)
-        {
-            var type = typeof(TSource);
-            var pe = Expression.Parameter(type, "p");
-            var propertyReference = Expression.Property(pe, property);
-            var constantReference = Expression.Constant(value);
-
-            //compile 是表达式的一个接口，生成该lambda表达式树对的委托
-            return Expression.Lambda<Func<TSource, bool>>(Expression.Equal(propertyReference, constantReference), pe).Compile();
-
-
-        }
-
         static void Print<T>(IEnumerable<T> list, string actionName)
         {
             Console.WriteLine($"[{actionName}]后的集合如下：");
@@ -83,7 +69,6 @@ namespace ConsoleApp1
             {
                 Console.WriteLine(item.ToString());
             }
-
         }
     }
 }
